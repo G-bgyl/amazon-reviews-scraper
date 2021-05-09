@@ -65,23 +65,6 @@ def extract_product_id(link_from_main_page):
         return None
 
 
-# def get_soup(url):
-#     if AMAZON_BASE_URL not in url:
-#         url = AMAZON_BASE_URL + url
-#     nap_time_sec = 1
-#     logging.debug('Script is going to sleep for {} (Amazon throttling). ZZZzzzZZZzz.'.format(nap_time_sec))
-#     sleep(nap_time_sec)
-#     header = {
-#         'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.134 Safari/537.36'
-#     }
-#     logging.debug('-> to Amazon : {}'.format(url))
-#     out = requests.get(url, headers=header)
-#     assert out.status_code == 200
-#     soup = BeautifulSoup(out.content, 'lxml')
-#     if 'captcha' in str(soup):
-#         raise BannedException('Your bot has been detected. Please wait a while.')
-#     return soup
-
 def get_soup_retry(url):
     from fake_useragent import UserAgent
     ua = UserAgent()
