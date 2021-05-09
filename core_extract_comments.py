@@ -2,8 +2,9 @@ import logging
 import math
 import re
 import textwrap
+import json
 
-from constants import AMAZON_BASE_URL
+from constants import AMAZON_BASE_URL, CACHE_FILE, CACHE_CHECK
 from core_utils import get_soup, persist_comment_to_disk
 
 
@@ -53,6 +54,7 @@ def get_comments_with_product_id(product_id):
     max_page_number *= 0.1  # displaying 10 results per page. So if 663 results then ~66 pages.
     max_page_number = math.ceil(max_page_number)
 
+    rev_count = 0
     for page_number in range(1, max_page_number + 1):
         if page_number > 1:
             product_reviews_link = get_product_reviews_url(product_id, page_number)
@@ -103,6 +105,12 @@ def get_comments_with_product_id(product_id):
                             'review_url': review_url,
                             'review_date': review_date,
                            })
+            rev_count += 1
+            if (rev_count == CACHE_CHECK):
+                with open(CACHE_FILE, 'w', encoding='utf-8') as fp:
+                    json.dump(reviews, fp, sort_keys=True, indent=4,
+                              ensure_ascii=False)
+                rev_count = 0
     return reviews
 
 
