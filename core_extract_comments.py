@@ -43,6 +43,7 @@ def get_comments_with_product_id(product_id):
 
     product_reviews_link = get_product_reviews_url(product_id)
     so = get_soup(product_reviews_link)
+
     max_page_number = so.find(attrs={'data-hook': 'total-review-count'})
     if max_page_number is None:
         return reviews
@@ -59,6 +60,9 @@ def get_comments_with_product_id(product_id):
         if page_number > 1:
             product_reviews_link = get_product_reviews_url(product_id, page_number)
             so = get_soup(product_reviews_link)
+        # Skip the page if retry limit reached
+        if 'captcha' in str(so):
+            continue
 
         cr_review_list_so = so.find(id='cm_cr-review_list')
 
@@ -73,14 +77,24 @@ def get_comments_with_product_id(product_id):
             break
 
         for review in reviews_list:
-            rating = review.find(attrs={'data-hook': 'review-star-rating'}).attrs['class'][2].split('-')[-1].strip()
-            body = review.find(attrs={'data-hook': 'review-body'}).text.strip()
-            title = review.find(attrs={'data-hook': 'review-title'}).text.strip()
-            author_url = review.find(attrs={'data-hook': 'genome-widget'}).find('a', href=True)
-            review_url = review.find(attrs={'data-hook': 'review-title'}).attrs['href']
-            review_date = review.find(attrs={'data-hook': 'review-date'}).text.strip()
+            try:
+                rating = review.find(attrs={'data-hook': 'review-star-rating'}).attrs['class'][2].split('-')[-1].strip()
+                body = review.find(attrs={'data-hook': 'review-body'}).text.strip()
+                title = review.find(attrs={'data-hook': 'review-title'}).text.strip()
+                author_url = review.find(attrs={'data-hook': 'genome-widget'}).find('a', href=True)
+                review_url = review.find(attrs={'data-hook': 'review-title'}).attrs['href']
+                review_date = review.find(attrs={'data-hook': 'review-date'}).text.strip()
+            except:
+                logging.info('!!! Unpacking review failed!')
+                logging.info('With review' + str(review))
             if author_url:
-                author_url = author_url['href'].strip()
+                try:
+                    tmp = author_url['href'].strip()
+                except TypeError:
+                    logging.info('!!! Unpacking author_url failed!')
+                    logging.info('Using raw' + str(author_url))
+                    tmp = author_url
+                author_url = tmp
             try:
                 helpful = review.find(attrs={'data-hook': 'helpful-vote-statement'}).text.strip()
                 helpful = helpful.strip().split(' ')[0]
