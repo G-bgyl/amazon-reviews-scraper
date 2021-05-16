@@ -1,7 +1,13 @@
 import argparse
-
-from core_extract_comments import *
-from core_utils import *
+import logging
+from core_extract_comments import (
+    get_comments_based_on_keyword,
+    get_comments_with_product_id,
+)
+from core_utils import (
+    get_reviews_filename,
+    persist_comment_to_disk,
+)
 
 
 def run(search, input_product_ids_filename):
