@@ -9,7 +9,7 @@ import requests
 from bs4 import BeautifulSoup
 
 from banned_exception import BannedException
-from constants import AMAZON_BASE_URL
+from constants import AMAZON_BASE_URL, MAX_BAN_RETRY
 
 OUTPUT_DIR = 'comments'
 
@@ -80,10 +80,14 @@ def get_soup_retry(url):
     }
     logging.debug('-> to Amazon : {}'.format(url))
     isCaptcha = True
+    try_cnt = 0
     while isCaptcha is True:
         out = requests.get(url, headers=header)
         assert out.status_code == 200
         soup = BeautifulSoup(out.content, 'lxml')
+        if try_cnt >= MAX_BAN_RETRY:
+            return soup
+
         if 'captcha' in str(soup):
             UserAGR = ua.random
             print('Bot has been detected... retrying ... use new identity: ', UserAGR)
@@ -93,6 +97,7 @@ def get_soup_retry(url):
             print('Bot bypassed')
             isCaptcha = False
             return soup
+        try_cnt += 1
 
 
 def get_soup(url):
